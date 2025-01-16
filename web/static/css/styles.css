@@ -1,0 +1,51 @@
+* {
+	margin: 0;
+}
+
+html {
+	background-color: black;
+	color: white;
+	height: 100%;
+}
+
+body {
+	height: 90%;
+}
+
+#page {
+	margin: 32px;
+	height: 100%;
+}
+
+#page, #world, #view, #stats, #terminal, #logger {
+	border: solid 1px white;
+}
+
+#page {
+	display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+#world {
+    display: flex;
+    justify-content: space-between;
+    height: 60%;
+}
+
+#view {
+	width: 70%;
+}
+
+#stats {
+    flex-grow: 1;
+}
+
+#logger {
+	flex-grow: 1;
+}
+
+#terminal input {
+	width: 100%;
+	box-sizing: border-box;
+}
