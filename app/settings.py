@@ -1,12 +1,12 @@
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = 'django-insecure-d041u16c5!ui$d8okdvloo9!wju^f0ss@bc$_#dzq8#o*y&36j'
-DEBUG = True
-ALLOWED_HOSTS = []
+BASE_DIR: Path = Path(__file__).resolve().parent.parent
+SECRET_KEY: str = 'django-insecure-d041u16c5!ui$d8okdvloo9!wju^f0ss@bc$_#dzq8#o*y&36j'
+DEBUG: bool = True
+ALLOWED_HOSTS: list[str] = []
 
 # Application definition
-INSTALLED_APPS = [
+INSTALLED_APPS: list[str] = [
 	'django.contrib.admin',
 	'django.contrib.auth',
 	'django.contrib.contenttypes',
@@ -17,7 +17,7 @@ INSTALLED_APPS = [
 ]
 
 # Middleware
-MIDDLEWARE = [
+MIDDLEWARE: list[str] = [
 	'django.middleware.security.SecurityMiddleware',
 	'django.contrib.sessions.middleware.SessionMiddleware',
 	'django.middleware.common.CommonMiddleware',
@@ -28,11 +28,11 @@ MIDDLEWARE = [
 ]
 
 # Resolver
-WSGI_APPLICATION = 'app.wsgi.application'
-ROOT_URLCONF = 'app.urls'
+WSGI_APPLICATION: str = 'app.wsgi.application'
+ROOT_URLCONF: str = 'app.urls'
 
 # Database
-DATABASES = {
+DATABASES: dict = {
 	'default': {
 		'ENGINE': 'django.db.backends.sqlite3',
 		'NAME': BASE_DIR / 'db.sqlite3',
@@ -40,7 +40,7 @@ DATABASES = {
 }
 
 # Password validation
-AUTH_PASSWORD_VALIDATORS = [
+AUTH_PASSWORD_VALIDATORS: list[dict] = [
 	{
 		'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
 	},
@@ -56,18 +56,18 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Internationalization
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_L10N = True
-USE_TZ = True
+LANGUAGE_CODE: str = 'en-us'
+TIME_ZONE: str = 'UTC'
+USE_I18N: bool = True
+USE_L10N: bool = True
+USE_TZ: bool = True
 
 # Static files
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    "web/static/",
+STATICFILES_DIRS: list[str] = [
+	"web/static/",
 ]
-TEMPLATES = [
+TEMPLATES: list[dict] = [
 	{
 		'BACKEND': 'django.template.backends.django.DjangoTemplates',
 		'DIRS': ['web/templates'],

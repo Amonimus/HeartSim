@@ -5,8 +5,10 @@
 	<meta charset="UTF-8">
 	<title>HeartSim</title>
 	<link rel="stylesheet" href="{% static 'css/styles.css' %}">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 </head>
 <body>
+	{% csrf_token %}
 	<div id="page">
 		<div id="world">
 			<div id="view">a</div>
@@ -14,8 +16,77 @@
 		</div>
 		<div id="logger">c</div>
 		<div id="terminal">
-			<input type="text">
+			<input type="text" id="command_input">
+			<button type="button" onclick="SendCommand()">Send</button>
 		</div>
 	</div>
 </body>
+
+<script>
+	function GetLogs(){
+		result = $.ajax({
+			url: "/ajax/getlogs",
+			async: false,
+			error: (error) => {
+				console.log(error);
+			}
+		});
+		var logs = result.responseJSON;
+
+		var container = document.getElementById("logger");
+		container.replaceChildren();
+
+		const list = document.createElement("ul");
+		container.appendChild(list);
+
+		for(let i=0; i<logs.length; i++){
+			const node = document.createElement("li");
+			const textnode = document.createTextNode(logs[i].time.toString() + " : " + logs[i].text);
+			node.appendChild(textnode);
+			list.appendChild(node);
+		}
+	}
+	function Advance(){
+		GetLogs();
+		$.ajax({
+			url: "/ajax/advance",
+			async: false,
+			error: (error) => {
+				console.log(error);
+			}
+		});
+	}
+	GetLogs();
+	setInterval(Advance, 1000);
+
+	function SendCommand(){
+		var text = document.getElementById("command_input").value;
+		console.log(text);
+		data = {
+			csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+			text: text
+		};
+		$.ajax({
+			url: "/ajax/sendcommand",
+			method: "POST",
+			async: false,
+			data: data,
+			success: (data) => {
+				console.log(data);
+				GetLogs();
+			},
+			error: (error) => {
+				console.log(error);
+			}
+		});
+	}
+
+	var input = document.getElementById("command_input");
+	input.addEventListener("keypress", function(event) {
+		if (event.key === "Enter") {
+			event.preventDefault();
+			SendCommand();
+		}
+	});
+</script>
 </html>
