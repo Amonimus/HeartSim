@@ -14,6 +14,7 @@ body {
 
 #page {
 	margin: 32px;
+	padding: 16px;
 	height: 100%;
 }
 
@@ -21,7 +22,9 @@ body {
 	border: solid 1px white;
 }
 
-#page {
+#character_page {
+    height: -webkit-fill-available;
+    margin-bottom: 16px;
 	display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -45,7 +48,20 @@ body {
 	flex-grow: 1;
 }
 
+#logger ul {
+	margin: 8px;
+	padding-inline-start: 0;
+}
+
+#logger li {
+	list-style: none;
+	color: lime;
+}
+
+#terminal {
+	display: flex;
+}
+
 #terminal input {
-	width: 90%;
-	box-sizing: border-box;
+	width: 100%;
 }

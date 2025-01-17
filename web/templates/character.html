@@ -1,0 +1,15 @@
+{% extends "base_page.html" %}
+{% block body %}
+<input type="hidden" id="char_id" name="char_id" value="{{ character.id }}">
+<div id="character_page">
+	<div id="world">
+		<div id="view">{% include "character_profile.html" %}</div>
+		<div id="stats">Stats menu</div>
+	</div>
+	<div id="logger">Logs failed to load...</div>
+	<div id="terminal">
+		<input type="text" id="command_input">
+		<button type="button" onclick="SendCommand()">Send</button>
+	</div>
+</div>
+{% endblock %}
