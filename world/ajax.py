@@ -8,6 +8,7 @@ def input(request: HttpRequest) -> JsonResponse:
 	try:
 		data: dict = request.POST.copy()
 		text: str = data.get("text")
+		text = f"{request.user} says: \"{text}\""
 		char_id: int = data.get("char_id")
 		SystemLog.objects.create(text=text)
 		character = Character.objects.get(id=char_id)

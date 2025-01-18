@@ -10,8 +10,11 @@ from .forms import CustomAuthenticationForm
 
 
 def IndexView(request: HttpRequest) -> HttpResponse:
-	characters = Character.objects.filter(creator=request.user)
-	context = {"characters": characters}
+	if request.user.is_authenticated:
+		characters = Character.objects.filter(creator=request.user)
+		context = {"characters": characters}
+	else:
+		context = {}
 	return render(request, "index.html", context)
 
 
@@ -19,7 +22,8 @@ def NewCharacterView(request: HttpRequest) -> HttpResponse:
 	if request.method == "POST":
 		form = CharacterForm(request.POST)
 		if form.is_valid():
-			character = form.save(commit=False)
+			character: Character = form.save(commit=False)
+			character.creator = request.user
 			character.stats = CharacterStats.objects.create()
 			character.save()
 			return redirect('index')

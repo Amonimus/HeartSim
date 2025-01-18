@@ -66,6 +66,10 @@ body {
 	width: 100%;
 }
 
+a, a:visited {
+	color: lime;
+}
+
 .toggle-password {
 	position: relative;
 	right: 1.5em;
