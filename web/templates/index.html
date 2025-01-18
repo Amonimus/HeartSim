@@ -1,14 +1,23 @@
 {% extends "base_page.html" %}
 {% block body %}
 <h1>HeartSim</h1>
-<a href="/new_character">Create Character</a><br/>
 
-<ul>
-	{% for character in characters %}
-	<li>
-		{{ character.name }}
-		<a href="/character/{{ character.id }}">Start</a>
-	</li>
-	{% endfor %}
-</ul>
+{% if user.is_authenticated %}
+	Logged in as: {{ user.username }}<br/>
+	<a href="/logout">Logout</a>
+	<h2>Character select</h2>
+	<ul>
+		{% for character in characters %}
+		<li>
+			{{ character.name }}
+			<a href="/character/{{ character.id }}">Start</a>
+		</li>
+		{% endfor %}
+		<li><a href="/new_character">Create Character</a></li>
+	</ul>
+{% else %}
+<a href="/login">Login</a><br/>
+<a href="/register">Register</a>
+{% endif %}
+
 {% endblock %}

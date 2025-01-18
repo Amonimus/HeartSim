@@ -1,0 +1,45 @@
+{% extends "base_page.html" %}
+
+{% block body %}
+
+<h1>Register</h1>
+{% if user.is_authenticated %}
+	You are already logged in.
+{% else %}
+<form method="post">
+	{% csrf_token %}
+	<div class="input-group">
+		<input type="text" name="username" autocomplete="on" placeholder="Username" required>
+	</div>
+	<div class="input-group">
+		<input type="text" name="email" autocomplete="on" placeholder="Email" required>
+	</div>
+	<div class="input-group">
+		<input type="password" name="password" autocomplete="on" placeholder="Password" required>
+		<span class="toggle-password">👁</span>
+	</div>
+	<div class="input-group">
+		<input type="password" name="confirm_password" autocomplete="on" placeholder="Confirm Password" required>
+		<span class="toggle-password">👁</span>
+	</div>
+	<p><input type="submit" value="Register"></p>
+</form>
+{% endif %}
+
+<script>
+	$(".toggle-password").click(function() {
+		var input = $('input[name="password"]');
+		if (input.attr("type") == "password") {
+			input.attr("type", "text");
+		} else {
+			input.attr("type", "password");
+		}
+		var input = $('input[name="confirm_password"]');
+		if (input.attr("type") == "password") {
+			input.attr("type", "text");
+		} else {
+			input.attr("type", "password");
+		}
+	});
+</script>
+{% endblock %}

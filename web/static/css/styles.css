@@ -65,3 +65,10 @@ body {
 #terminal input {
 	width: 100%;
 }
+
+.toggle-password {
+	position: relative;
+	right: 1.5em;
+	cursor: pointer;
+	color: black;
+}

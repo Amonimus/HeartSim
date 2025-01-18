@@ -5,6 +5,9 @@ from . import ajax
 
 urlpatterns: list = [
     path("", views.IndexView, name="index"),
+    path("login", views.LoginView.as_view(), name="login"),
+    path("logout", views.LogoutView.as_view(), name="logout"),
+    path("register", views.RegistrationView.as_view(), name="register"),
     path("new_character", views.NewCharacterView, name="new_character"),
     path("character/<int:char_id>", views.CharacterView, name="character"),
     path("ajax/sendcommand", ajax.input, name="sendcommand"),
