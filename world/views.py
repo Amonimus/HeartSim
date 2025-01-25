@@ -11,8 +11,8 @@ from .forms import CustomAuthenticationForm
 
 def IndexView(request: HttpRequest) -> HttpResponse:
 	if request.user.is_authenticated:
-		characters = Character.objects.filter(creator=request.user)
-		context = {"characters": characters}
+		characters: list[Character] = Character.objects.filter(creator=request.user)
+		context: dict = {"characters": characters}
 	else:
 		context = {}
 	return render(request, "index.html", context)
@@ -20,7 +20,7 @@ def IndexView(request: HttpRequest) -> HttpResponse:
 
 def NewCharacterView(request: HttpRequest) -> HttpResponse:
 	if request.method == "POST":
-		form = CharacterForm(request.POST)
+		form: CharacterForm = CharacterForm(request.POST)
 		if form.is_valid():
 			character: Character = form.save(commit=False)
 			character.creator = request.user
@@ -28,13 +28,13 @@ def NewCharacterView(request: HttpRequest) -> HttpResponse:
 			character.save()
 			return redirect('index')
 	form = CharacterForm()
-	context = {"form": form}
+	context: dict = {"form": form}
 	return render(request, "new_character.html", context)
 
 
 def CharacterView(request: HttpRequest, char_id: int) -> HttpResponse:
-	character = Character.objects.get(id=char_id)
-	context = {"character": character}
+	character: Character = Character.objects.get(id=char_id)
+	context: dict = {"character": character}
 	return render(request, "character.html", context)
 
 
@@ -47,9 +47,9 @@ class LoginView(View):
 		return render(request, self.template_name, {'form': form})
 
 	def post(self, request):
-		form = self.form_class(data=request.POST)
+		form: CustomAuthenticationForm = self.form_class(data=request.POST)
 		if form.is_valid():
-			user = form.get_user()
+			user: User = form.get_user()
 			if user is not None:
 				login(request, user)
 				return redirect(reverse('index'))
@@ -65,10 +65,14 @@ class RegistrationView(View):
 		return render(request, self.template_name)
 
 	def post(self, request):
-		data = request.POST.copy()
+		data: dict = request.POST.copy()
 		if data['password'] != data['confirm_password']:
 			raise Exception("Password don't match")
-		user = User.objects.create_user(username=data['username'], email=data['email'], password=data['password'])
+		user: User = User.objects.create_user(
+			username=data['username'],
+			email=data['email'],
+			password=data['password']
+		)
 		login(request, user)
 		return redirect(reverse('index'))
 
