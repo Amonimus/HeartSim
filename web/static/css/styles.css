@@ -1,5 +1,6 @@
 * {
 	margin: 0;
+	font-family: Consolas;
 }
 
 html {
@@ -18,7 +19,7 @@ body {
 	height: 100%;
 }
 
-#page, #world, #view, #stats, #terminal, #logger {
+#page, #world, #view, #stat_view, #terminal, #logger {
 	border: solid 1px white;
 }
 
@@ -40,7 +41,7 @@ body {
 	width: 70%;
 }
 
-#stats {
+#stat_view {
     flex-grow: 1;
 }
 
@@ -75,4 +76,18 @@ a, a:visited {
 	right: 1.5em;
 	cursor: pointer;
 	color: black;
+}
+
+.center {
+	display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    flex-direction: column;
+}
+
+#error_status {
+	color: red;
 }

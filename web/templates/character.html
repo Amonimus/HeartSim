@@ -5,7 +5,16 @@
 <div id="character_page">
 	<div id="world">
 		<div id="view">{% include "character_profile.html" %}</div>
-		<div id="stats">Stats menu</div>
+		<div id="stat_view">
+			<div id="stats">
+				Statuses:<br/>
+				<span id="status_list"></span>
+			</div>
+			<div id="tasks">
+				Tasks:<br/>
+				<span id="task_list"></span>
+			</div>
+		</div>
 	</div>
 	<div id="logger">Logs failed to load...</div>
 	<div id="terminal">

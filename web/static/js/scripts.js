@@ -1,6 +1,6 @@
 GetLogs();
 GetCharacterStats();
-setInterval(Advance, 1000);
+var interval_id = setInterval(Advance, 1000);
 
 var input = document.getElementById("command_input");
 input.addEventListener("keypress", function(event) {

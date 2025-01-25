@@ -7,12 +7,12 @@ from .models import SystemLog
 def input(request: HttpRequest) -> JsonResponse:
 	try:
 		data: dict = request.POST.copy()
-		text: str = data.get("text")
-		text = f"{request.user} says: \"{text}\""
 		char_id: int = data.get("char_id")
-		SystemLog.objects.create(text=text)
-		character = Character.objects.get(id=char_id)
-		CharacterLog.objects.create(character=character, text=text)
+		text: str = data.get("text")
+		entry = f"{request.user} says: \"{text}\""
+		SystemLog.objects.create(text=entry)
+		character: Character = Character.objects.get(id=char_id)
+		character.listen(request.user, text)
 		return JsonResponse({"ok": True})
 	except Exception as e:
 		print(e)

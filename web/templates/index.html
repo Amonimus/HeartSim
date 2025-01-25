@@ -3,14 +3,15 @@
 <h1>HeartSim</h1>
 
 {% if user.is_authenticated %}
-	Logged in as: {{ user.username }}<br/>
-	<a href="/logout">Logout</a>
+	Logged in as: {{ user.username }} (<a href="/logout">Logout</a>)
+	<br/><br/>
+	<hr/>
 	<h2>Character select</h2>
 	<ul>
 		{% for character in characters %}
 		<li>
 			{{ character.name }}
-			<a href="/character/{{ character.id }}">Start</a>
+			(<a href="/character/{{ character.id }}">Start</a>)
 		</li>
 		{% endfor %}
 		<li><a href="/new_character">Create Character</a></li>

@@ -4,7 +4,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>{% block title%}HeartSim{% endblock %}</title>
-	<link rel="icon" type="image/x-icon" href="{% static favicon.ico %}">
+	<link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
 	<link rel="stylesheet" href="{% static 'css/styles.css' %}">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 </head>
@@ -12,10 +12,12 @@
 {% csrf_token %}
 <div id="page">
 	<div id="navbar">
-		<a href="/">Index</a>
+		<a href="/">/Home</a>
+		<span id="current-time">{% now "Y-m-d G:i:s" %}</span>
 	</div>
 {% block body%}HeartSim{% endblock %}
 </div>
 </body>
 
+<script type="text/javascript" src="{% static 'js/get_time.js' %}"></script>
 </html>

@@ -8,7 +8,7 @@ function GetLogs(){
 		async: false,
 		data: data,
 		error: (error) => {
-			console.log(error);
+			console.error(error);
 		}
 	});
 	if (result.status == 200){
