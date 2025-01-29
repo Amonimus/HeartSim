@@ -1,5 +1,5 @@
 const options = {
-	weekday: "long",
+//	weekday: "long",
 	year: "numeric",
 	month: "short",
 	day: "numeric",

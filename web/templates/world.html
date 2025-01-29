@@ -1,0 +1,28 @@
+{% extends "base_page.html" %}
+{% load static %}
+{% block body %}
+<input type="hidden" id="world_id" name="world_id" value="{{ world.id }}">
+<div id="world_page">
+	<div id="world">
+		<div id="view">{% include "world_summary.html" %}</div>
+		<div id="stat_view">
+			<div id="stats">
+				Statuses:<br/>
+				<span id="status_list"></span>
+			</div>
+			<div id="tasks">
+				Tasks:<br/>
+				<span id="task_list"></span>
+			</div>
+		</div>
+	</div>
+	<div id="logger">Logs failed to load...</div>
+	<div id="terminal">
+		<input type="text" id="command_input" placeholder="type '/help' for full list">
+		<button type="button" onclick="SendCommand()">Send</button>
+	</div>
+</div>
+
+<script src="{% static 'js/world_scripts.js' %}"></script>
+
+{% endblock %}

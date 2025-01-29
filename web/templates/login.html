@@ -22,13 +22,6 @@
 {% endif %}
 
 <script>
-	$(".toggle-password").click(function() {
-		var input = $('input[name="password"]');
-		if (input.attr("type") == "password") {
-			input.attr("type", "text");
-		} else {
-			input.attr("type", "password");
-		}
-	});
+	include("toggle_password");
 </script>
 {% endblock %}

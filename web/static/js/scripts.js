@@ -1,11 +1,10 @@
-GetLogs();
-GetCharacterStats();
-var interval_id = setInterval(Advance, 1000);
-
-var input = document.getElementById("command_input");
-input.addEventListener("keypress", function(event) {
-	if (event.key === "Enter") {
-		event.preventDefault();
-		SendCommand();
-	}
-});
+function include(file) {
+    var script = document.createElement('script');
+    script.src = "/static/js/"+file+".js";
+    script.type = 'text/javascript';
+    script.defer = true;
+    document.getElementsByTagName('head').item(0).appendChild(script);
+    console.log("included "+file);
+}
+include("ajax_call");
+include("get_time");

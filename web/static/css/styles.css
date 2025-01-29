@@ -1,40 +1,61 @@
+:root {
+	--background: black;
+	--text-color: white;
+	--theme-color: lime;
+}
+
 * {
 	margin: 0;
 	font-family: Consolas;
 }
 
 html {
-	background-color: black;
-	color: white;
+	background-color: var(--background);
+	color: var(--text-color);
 	height: 100%;
 }
 
 body {
-	height: 90%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 32px;
+	margin-bottom: 32px;
+	padding-bottom: 32px;
 }
 
 #page {
+	position: relative;
 	margin: 32px;
 	padding: 16px;
 	height: 100%;
 }
 
 #page, #world, #view, #stat_view, #terminal, #logger {
-	border: solid 1px white;
+	border: solid 1px var(--theme-color);
 }
 
-#character_page {
-    height: -webkit-fill-available;
-    margin-bottom: 16px;
+#footer {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	text-align: center;
+}
+
+#world_page {
+	height: -webkit-fill-available;
+	margin-bottom: 16px;
 	display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+	flex-direction: column;
+	justify-content: space-between;
 }
 
 #world {
-    display: flex;
-    justify-content: space-between;
-    height: 60%;
+	display: flex;
+	justify-content: space-between;
+	height: 60%;
 }
 
 #view {
@@ -42,11 +63,13 @@ body {
 }
 
 #stat_view {
-    flex-grow: 1;
+	flex-grow: 1;
 }
 
 #logger {
 	flex-grow: 1;
+	max-height: 40%;
+	overflow: auto;
 }
 
 #logger ul {
@@ -56,7 +79,7 @@ body {
 
 #logger li {
 	list-style: none;
-	color: lime;
+	color: var(--theme-color);
 }
 
 #terminal {
@@ -68,24 +91,24 @@ body {
 }
 
 a, a:visited {
-	color: lime;
+	color: var(--theme-color);
 }
 
 .toggle-password {
 	position: relative;
-	right: 1.5em;
+	right: 1.75em;
 	cursor: pointer;
-	color: black;
+	color: var(--background);
 }
 
 .center {
 	display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    top: 50%;
-    transform: translateY(-50%);
-    flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	position: relative;
+	top: 50%;
+	transform: translateY(-50%);
+	flex-direction: column;
 }
 
 #error_status {

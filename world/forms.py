@@ -1,6 +1,11 @@
+import json
+
+from django import forms
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
+
+from .models import WorldEnviroment, State
 
 
 class CustomAuthenticationForm(AuthenticationForm):
@@ -22,3 +27,23 @@ class CustomAuthenticationForm(AuthenticationForm):
 			print(f'LOGIN EXCEPTION: {e}')
 			raise e
 		return self.cleaned_data
+
+
+class WorldForm(forms.ModelForm):
+	class Meta:
+		model = WorldEnviroment
+		fields = ["name"]
+
+
+class PrettyJSONEncoder(json.JSONEncoder):
+	def __init__(self, *args, indent, sort_keys, **kwargs):
+		super().__init__(*args, indent=2, sort_keys=True, **kwargs)
+
+
+class StateForm(forms.ModelForm):
+	logic = forms.JSONField(encoder=PrettyJSONEncoder, widget=forms.Textarea(attrs={"class": "jsonfield", "cols": 60, "rows": 40}))
+	# forms.CharField(widget=forms.Textarea(attrs={"class": "jsonfield"}))
+
+	class Meta:
+		model = State
+		fields = ["id", "logic"]

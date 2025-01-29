@@ -1,85 +1,77 @@
-from django.contrib.auth import login, logout
-from django.contrib.auth.models import User
 from django.http import HttpRequest
 from django.shortcuts import HttpResponse, redirect, render, reverse
-from django.views import View
 
-from character.forms import CharacterForm
-from character.models import CharacterStats, Character
-from .forms import CustomAuthenticationForm
+from .forms import WorldForm, StateForm
+from .models import WorldEnviroment, Entity, Task, State
 
 
 def IndexView(request: HttpRequest) -> HttpResponse:
 	if request.user.is_authenticated:
-		characters: list[Character] = Character.objects.filter(creator=request.user)
-		context: dict = {"characters": characters}
+		worlds: list[WorldEnviroment] = WorldEnviroment.objects.filter(creator=request.user)
+		context: dict = {"worlds": worlds}
 	else:
 		context = {}
 	return render(request, "index.html", context)
 
 
-def NewCharacterView(request: HttpRequest) -> HttpResponse:
+def NewWorldView(request: HttpRequest) -> HttpResponse:
+	if not request.user.is_authenticated:
+		return redirect('unauthenticated')
 	if request.method == "POST":
-		form: CharacterForm = CharacterForm(request.POST)
+		form: WorldForm = WorldForm(request.POST)
 		if form.is_valid():
-			character: Character = form.save(commit=False)
-			character.creator = request.user
-			character.stats = CharacterStats.objects.create()
-			character.save()
+			world: WorldEnviroment = form.save(commit=False)
+			world.creator = request.user
+			character = Entity.objects.create(name=world.name, creator=world.creator)
+			world.save()
+			world.entities.add(character)
 			return redirect('index')
-	form = CharacterForm()
+	form = WorldForm()
 	context: dict = {"form": form}
-	return render(request, "new_character.html", context)
+	return render(request, "new_world.html", context)
 
 
-def CharacterView(request: HttpRequest, char_id: int) -> HttpResponse:
-	character: Character = Character.objects.get(id=char_id)
-	context: dict = {"character": character}
-	return render(request, "character.html", context)
+def WorldView(request: HttpRequest, world_id: int) -> HttpResponse:
+	if not request.user.is_authenticated:
+		return redirect('unauthenticated')
+	world: WorldEnviroment = WorldEnviroment.objects.get(id=world_id)
+	if world.creator != request.user:
+		return redirect('unauthenticated')
+	context: dict = {"world": world}
+	return render(request, "world.html", context)
 
 
-class LoginView(View):
-	form_class = CustomAuthenticationForm
-	template_name = 'login.html'
+def DeleteWorldView(request: HttpRequest, world_id: int) -> HttpResponse:
+	if not request.user.is_authenticated:
+		return redirect('unauthenticated')
+	world: WorldEnviroment = WorldEnviroment.objects.get(id=world_id)
+	if world.creator != request.user:
+		return redirect('unauthenticated')
+	world.delete()
+	return redirect(reverse('index'))
 
-	def get(self, request):
-		form = self.form_class(None)
-		return render(request, self.template_name, {'form': form})
 
-	def post(self, request):
-		form: CustomAuthenticationForm = self.form_class(data=request.POST)
+def TutorialView(request: HttpRequest) -> HttpResponse:
+	if not request.user.is_authenticated:
+		return redirect('unauthenticated')
+	return render(request, "tutorial.html")
+
+
+def EditorView(request: HttpRequest) -> HttpResponse:
+	if not request.user.is_authenticated:
+		return redirect('unauthenticated')
+	if request.method == "POST":
+		state_id = request.POST.get("state_id")
+		state = State.objects.get(id=state_id)
+		form: StateForm = StateForm(request.POST, instance=state)
 		if form.is_valid():
-			user: User = form.get_user()
-			if user is not None:
-				login(request, user)
-				return redirect(reverse('index'))
-		else:
-			print(f'FORM {form.errors} {form.non_field_errors()}')
-		return render(request, self.template_name, {'form': form})
+			form.save()
 
-
-class RegistrationView(View):
-	template_name = 'register.html'
-
-	def get(self, request):
-		return render(request, self.template_name)
-
-	def post(self, request):
-		data: dict = request.POST.copy()
-		if data['password'] != data['confirm_password']:
-			raise Exception("Password don't match")
-		user: User = User.objects.create_user(
-			username=data['username'],
-			email=data['email'],
-			password=data['password']
-		)
-		login(request, user)
-		return redirect(reverse('index'))
-
-
-class LogoutView(View):
-
-	def get(self, request):
-		request.session.flush()
-		logout(request)
-		return redirect(reverse('index'))
+	tasks = Task.objects.all()
+	states = State.objects.all()
+	state_forms = []
+	for state in states:
+		form = StateForm(instance=state)
+		state_forms.append(form)
+	context: dict = {"tasks": tasks, "states": states, "state_forms": state_forms}
+	return render(request, "editor.html", context)
