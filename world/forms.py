@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 
-from .models import WorldEnviroment, State
+from .models import WorldEnvironment, State, Task
 
 
 class CustomAuthenticationForm(AuthenticationForm):
@@ -31,7 +31,7 @@ class CustomAuthenticationForm(AuthenticationForm):
 
 class WorldForm(forms.ModelForm):
 	class Meta:
-		model = WorldEnviroment
+		model = WorldEnvironment
 		fields = ["name"]
 
 
@@ -42,8 +42,15 @@ class PrettyJSONEncoder(json.JSONEncoder):
 
 class StateForm(forms.ModelForm):
 	logic = forms.JSONField(encoder=PrettyJSONEncoder, widget=forms.Textarea(attrs={"class": "jsonfield", "cols": 60, "rows": 40}))
-	# forms.CharField(widget=forms.Textarea(attrs={"class": "jsonfield"}))
 
 	class Meta:
 		model = State
+		fields = ["id", "logic"]
+
+
+class TaskForm(forms.ModelForm):
+	logic = forms.JSONField(encoder=PrettyJSONEncoder, widget=forms.Textarea(attrs={"class": "jsonfield", "cols": 60, "rows": 40}))
+
+	class Meta:
+		model = Task
 		fields = ["id", "logic"]

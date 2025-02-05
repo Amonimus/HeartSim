@@ -1,13 +1,13 @@
 from django.http import HttpRequest
 from django.shortcuts import HttpResponse, redirect, render, reverse
 
-from .forms import WorldForm, StateForm
-from .models import WorldEnviroment, Entity, Task, State
+from .forms import WorldForm, StateForm, TaskForm
+from .models import WorldEnvironment, Entity, Task, State
 
 
 def IndexView(request: HttpRequest) -> HttpResponse:
 	if request.user.is_authenticated:
-		worlds: list[WorldEnviroment] = WorldEnviroment.objects.filter(creator=request.user)
+		worlds: list[WorldEnvironment] = WorldEnvironment.objects.filter(creator=request.user)
 		context: dict = {"worlds": worlds}
 	else:
 		context = {}
@@ -20,11 +20,10 @@ def NewWorldView(request: HttpRequest) -> HttpResponse:
 	if request.method == "POST":
 		form: WorldForm = WorldForm(request.POST)
 		if form.is_valid():
-			world: WorldEnviroment = form.save(commit=False)
+			world: WorldEnvironment = form.save(commit=False)
 			world.creator = request.user
-			character = Entity.objects.create(name=world.name, creator=world.creator)
 			world.save()
-			world.entities.add(character)
+			Entity.objects.create(world=world, name=world.name, creator=world.creator)
 			return redirect('index')
 	form = WorldForm()
 	context: dict = {"form": form}
@@ -34,7 +33,7 @@ def NewWorldView(request: HttpRequest) -> HttpResponse:
 def WorldView(request: HttpRequest, world_id: int) -> HttpResponse:
 	if not request.user.is_authenticated:
 		return redirect('unauthenticated')
-	world: WorldEnviroment = WorldEnviroment.objects.get(id=world_id)
+	world: WorldEnvironment = WorldEnvironment.objects.get(id=world_id)
 	if world.creator != request.user:
 		return redirect('unauthenticated')
 	context: dict = {"world": world}
@@ -44,7 +43,7 @@ def WorldView(request: HttpRequest, world_id: int) -> HttpResponse:
 def DeleteWorldView(request: HttpRequest, world_id: int) -> HttpResponse:
 	if not request.user.is_authenticated:
 		return redirect('unauthenticated')
-	world: WorldEnviroment = WorldEnviroment.objects.get(id=world_id)
+	world: WorldEnvironment = WorldEnvironment.objects.get(id=world_id)
 	if world.creator != request.user:
 		return redirect('unauthenticated')
 	world.delete()
@@ -71,7 +70,16 @@ def EditorView(request: HttpRequest) -> HttpResponse:
 	states = State.objects.all()
 	state_forms = []
 	for state in states:
-		form = StateForm(instance=state)
-		state_forms.append(form)
-	context: dict = {"tasks": tasks, "states": states, "state_forms": state_forms}
+		state_forms.append(StateForm(instance=state))
+	task_forms = []
+	for task in tasks:
+		task_forms.append(TaskForm(instance=task))
+	context: dict = {
+		"states": states,
+		"state_forms": state_forms,
+		"tasks": tasks,
+		"task_forms": task_forms
+	}
+	print(state_forms)
+	print(task_forms)
 	return render(request, "editor.html", context)

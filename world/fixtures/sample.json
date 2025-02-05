@@ -1,0 +1,142 @@
+[
+  {
+	"model": "world.state",
+	"pk": 1,
+	"fields": {
+	  "name": "Idle",
+	  "logic": {
+		"on_tick": [
+		  {
+			"conditions": [
+			  {
+				"and": [
+				  {
+					"==": [
+					  "self.alive",
+					  true
+					]
+				  },
+				  {
+					">": [
+					  "self.stamina",
+					  0
+					]
+				  }
+				]
+			  }
+			],
+			"actions": [
+			  {
+				"set": {
+				  "var": "self.stamina",
+				  "value": {
+					"sum": [
+					  "self.stamina",
+					  -10
+					]
+				  }
+				}
+			  }
+			]
+		  },
+		  {
+			"conditions": [
+			  {
+				"and": [
+				  {
+					"==": [
+					  "self.alive",
+					  true
+					]
+				  },
+				  {
+					">": [
+					  "self.health",
+					  0
+					]
+				  },
+				  {
+					"<=": [
+					  "self.stamina",
+					  0
+					]
+				  }
+				]
+			  }
+			],
+			"actions": [
+			  {
+				"set": {
+				  "var": "self.health",
+				  "value": {
+					"sum": [
+					  "self.health",
+					  -2
+					]
+				  }
+				}
+			  },
+			  {
+				"addstate": "Tired"
+			  }
+			]
+		  },
+		  {
+			"conditions": [
+			  {
+				"and": [
+				  {
+					"==": [
+					  "self.alive",
+					  true
+					]
+				  },
+				  {
+					"<=": [
+					  "self.health",
+					  0
+					]
+				  }
+				]
+			  }
+			],
+			"actions": [
+			  {
+				"set": {
+				  "var": "self.alive",
+				  "value": false
+				}
+			  }
+			]
+		  }
+		]
+	  }
+	}
+  },
+  {
+	"model": "world.task",
+	"pk": 1,
+	"fields": {
+	  "name": "Sleep",
+	  "logic": {
+		"on_tick": [
+		  {
+			"actions": [
+			  {
+				"set": {
+				  "var": "self.stamina",
+				  "value": {
+					"sum": [
+					  "self.stamina",
+					  10
+					]
+				  }
+				}
+			  }
+			]
+		  }
+		]
+	  }
+	}
+  }
+]

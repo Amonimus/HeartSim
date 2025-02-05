@@ -16,20 +16,18 @@ html {
 }
 
 body {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 32px;
-	margin-bottom: 32px;
-	padding-bottom: 32px;
+	display: flex;
+    min-height: 100%;
+	height: max-content;
 }
 
 #page {
 	position: relative;
 	margin: 32px;
 	padding: 16px;
-	height: 100%;
+	flex-grow: 1;
+	display: flex;
+    flex-direction: column;
 }
 
 #page, #world, #view, #stat_view, #terminal, #logger {
@@ -46,7 +44,6 @@ body {
 
 #world_page {
 	height: -webkit-fill-available;
-	margin-bottom: 16px;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
@@ -88,6 +85,10 @@ body {
 
 #terminal input {
 	width: 100%;
+}
+
+#view, #stat_view {
+	padding: 8px;
 }
 
 a, a:visited {

@@ -15,8 +15,7 @@ INSTALLED_APPS: list[str] = [
 	'django.contrib.staticfiles',
 	'rest_framework',
 	'api',
-	'world',
-	'character'
+	'world'
 ]
 
 # Middleware

@@ -3,7 +3,7 @@ from django.http.response import JsonResponse, HttpResponseForbidden, HttpRespon
 from rest_framework.request import Request
 from rest_framework.views import APIView
 
-from world.models import WorldEnviroment, SystemLog
+from world.models import WorldEnvironment, SystemLog
 
 
 class UsersApiView(APIView):
@@ -16,7 +16,7 @@ class WorldApiView(APIView):
 	def get(self, request: Request) -> HttpResponse:
 		data: dict = request.GET.copy()
 		world_id: int = data.get("world_id")
-		world: WorldEnviroment = WorldEnviroment.objects.get(id=world_id)
+		world: WorldEnvironment = WorldEnvironment.objects.get(id=world_id)
 		if world.creator != request.user:
 			return HttpResponseForbidden('unauthorized', status=403)
 		return JsonResponse(world.to_json(), safe=False)
@@ -27,7 +27,7 @@ class WorldAdvanceApiView(APIView):
 		try:
 			data: dict = request.POST.copy()
 			world_id: int = data.get("world_id")
-			world: WorldEnviroment = WorldEnviroment.objects.get(id=world_id)
+			world: WorldEnvironment = WorldEnvironment.objects.get(id=world_id)
 			if world.creator != request.user:
 				return HttpResponseForbidden('unauthorized', status=403)
 			world.advance()
@@ -42,13 +42,11 @@ class SendCommandApiView(APIView):
 		try:
 			data: dict = request.POST.copy()
 			world_id: int = data.get("world_id")
-			world: WorldEnviroment = WorldEnviroment.objects.get(id=world_id)
+			world: WorldEnvironment = WorldEnvironment.objects.get(id=world_id)
 			if world.creator != request.user:
 				return HttpResponseForbidden('unauthorized', status=403)
 			text: str = data.get("text")
-			entry: str = f"{request.user} says: \"{text}\""
-			SystemLog.objects.create(text=entry)
-			world.log(text)
+			world.listen(request.user, text)
 			return JsonResponse({"ok": True})
 		except Exception as e:
 			print(e)

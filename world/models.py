@@ -1,5 +1,6 @@
 import traceback
 from datetime import datetime
+from typing import Any
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -9,11 +10,16 @@ from app.logger import logger
 
 
 class SystemLog(Model):
+	"""Global logs"""
 	objects: Manager = Manager()
 	time: datetime = DateTimeField(auto_now_add=True)
 	text: str = TextField()
 
+	def __str__(self) -> str:
+		return f"SystemLog({self.time})"
+
 	def to_json(self) -> dict:
+		"""export data"""
 		data: dict = {
 			"time": self.time.strftime("%m-%d-%Y %H:%M:%S"),
 			"text": self.text
@@ -21,45 +27,74 @@ class SystemLog(Model):
 		return data
 
 
-class WorldEnviroment(Model):
+class WorldEnvironment(Model):
 	objects: Manager = Manager()
 	name: str = CharField(max_length=60)
 	creator: User = ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
 	creation_time: datetime = DateTimeField(auto_now_add=True)
 	last_update: datetime = DateTimeField(auto_now_add=True)
-	entities: list["Entity"] | QuerySet = ManyToManyField("Entity")
 
-	def to_json(self):
+	def __str__(self) -> str:
+		return f"World({self.name})"
+
+	@property
+	def entities(self) -> list["Entity"] | QuerySet:
+		"""list entitied"""
+		return Entity.objects.filter(world=self)
+
+	@property
+	def logs(self) -> list["WorldLog"]:
+		"""list logs"""
+		return WorldLog.objects.filter(world=self)
+
+	def to_json(self) -> dict:
+		"""export data"""
 		data: dict = {
 			"name": self.name,
-			"entities": [entity.to_json() for entity in self.entities.all()],
+			"entities": [entity.to_json() for entity in self.entities],
 			"logs": [log.to_json() for log in self.logs]
 		}
 		return data
 
 	def log(self, text: str) -> None:
+		"""save text"""
 		WorldLog.objects.create(world=self, text=text)
 
-	@property
-	def logs(self) -> list["WorldLog"]:
-		return WorldLog.objects.filter(world=self)
-
-	def advance(self):
+	def advance(self) -> None:
+		"""move all entities by one tick"""
 		try:
-			for entity in self.entities.all():
-				entity.on_tick()
+			for entity in self.entities:
+				if entity.properties.get("alive", True):
+					entity.on_tick()
+		except Exception as e:
+			logger.error(f"{e}, {traceback.format_exc()}")
+			raise e
+
+	def listen(self, user: User, text: str) -> None:
+		"""react to user input"""
+		try:
+			entry: str = f"{user} says: \"{text}\""
+			SystemLog.objects.create(text=entry)
+			self.log(text)
+			for entity in self.entities:
+				entity.listen(text)
 		except Exception as e:
 			logger.error(f"{e}, {traceback.format_exc()}")
 			raise e
 
 
 class WorldLog(Model):
+	"""World journal"""
 	objects: Manager = Manager()
-	world: WorldEnviroment = ForeignKey(WorldEnviroment, on_delete=models.CASCADE)
+	world: WorldEnvironment = ForeignKey(WorldEnvironment, on_delete=models.CASCADE)
 	time: datetime = DateTimeField(auto_now_add=True)
 	text: str = TextField()
 
+	def __str__(self) -> str:
+		return f"Log({self.world.name}, {self.time})"
+
 	def to_json(self) -> dict:
+		"""export data"""
 		data: dict = {
 			"time": self.time.strftime("%m-%d-%Y %H:%M:%S"),
 			"text": self.text
@@ -68,15 +103,23 @@ class WorldLog(Model):
 
 
 class State(Model):
+	"""Character status effects"""
 	objects: Manager = Manager()
 	name: str = CharField(max_length=60)
 	logic: dict = JSONField(default=dict)
+
+	def __str__(self) -> str:
+		return f"State({self.name})"
 
 
 class Task(Model):
+	"""Character tasks"""
 	objects: Manager = Manager()
 	name: str = CharField(max_length=60)
 	logic: dict = JSONField(default=dict)
+
+	def __str__(self) -> str:
+		return f"Task({self.name})"
 
 
 def default_properties():
@@ -89,7 +132,9 @@ def default_properties():
 
 
 class Entity(Model):
+	"""Character"""
 	objects: Manager = Manager()
+	world: WorldEnvironment = ForeignKey(WorldEnvironment, on_delete=models.CASCADE)
 	name: str = CharField(max_length=60)
 	creator: User = ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
 	properties: dict = JSONField(default=default_properties)
@@ -99,14 +144,24 @@ class Entity(Model):
 	class InvalidToken(Exception):
 		pass
 
-	def to_json(self):
+	class InvalidOperator(Exception):
+		pass
+
+	def __str__(self) -> str:
+		return f"Entity({self.name})"
+
+	def to_json(self) -> dict:
+		"""export data"""
 		data: dict = {
 			"name": self.name,
-			"properties": self.properties
+			"properties": self.properties,
+			"states": [state.name for state in self.states.all()],
+			"tasks": [task.name for task in self.tasks.all()]
 		}
 		return data
 
 	def check_state(self, state_name: str) -> tuple["State", bool]:
+		"""Check if State by name is present in the Entity and return it"""
 		try:
 			state = State.objects.get(name=state_name)
 			if state in self.states.all():
@@ -117,87 +172,141 @@ class Entity(Model):
 			return None, False
 
 	def check_task(self, task_name: str) -> tuple["Task", bool]:
+		"""Check if Task by name is present in the Entity and return it"""
 		try:
 			task = Task.objects.get(name=task_name)
 			if task in self.tasks.all():
 				return task, True
 			else:
 				return task, False
-		except State.DoesNotExist:
+		except Task.DoesNotExist:
 			return None, False
 
-	def on_tick(self):
+	def add_state(self, state_name: str) -> None:
+		"""Add a State to the list of states, create a new one if needed"""
+		state, present = self.check_state(state_name)
+		if state is None:
+			state, new = State.objects.get_or_create(name=state_name)
+		if not present:
+			logger.debug(f"Add state: {state.name}")
+			self.states.add(state)
+			self.say(f"State added: {state.name}")
+
+	def add_task(self, task_name: str) -> None:
+		"""Add a Task to the list of tasks, create a new one if needed"""
+		task, present = self.check_task(task_name)
+		if task is None:
+			task, new = Task.objects.get_or_create(name=task_name)
+		if not present:
+			logger.debug(f"Add task: {task.name}")
+			self.tasks.add(task)
+			self.say(f"Task added: {task.name}")
+
+	def remove_state(self, state_name: str) -> None:
+		"""Unlist a State if present"""
+		state, present = self.check_state(state_name)
+		if state is None:
+			return
+		if present:
+			logger.debug(f"Remove state: {state.name}")
+			self.states.remove(state)
+			self.say(f"State remove: {state.name}")
+
+	def remove_task(self, task_name: str) -> None:
+		"""Unlist a Task if present"""
+		task, present = self.check_task(task_name)
+		if task is None:
+			return
+		if present:
+			logger.debug(f"Remove task: {task.name}")
+			self.tasks.remove(task)
+			self.say(f"Task remove: {task.name}")
+
+	def set_property(self, var: str, val: Any) -> None:
+		"""Update property"""
+		if not isinstance(val, (bool, int, float, str)):
+			raise Exception("Invalid value")
+		self.properties[var] = val
+		self.save(update_fields=["properties"])
+
+	def say(self, text: str) -> None:
+		"""Add something to world chat"""
+		entry: str = f"{self.name} says: \"{text}\""
+		self.world.log(entry)
+
+	def listen(self, text: str) -> None:
+		"""Respond to user input"""
+		if "sleep" in text:
+			self.add_task("Sleep")
+
+	def on_tick(self) -> None:
+		"""On time step"""
 		if len(self.tasks.all()) == 0:
 			self.set_idle()
+		else:
+			self.remove_state("Idle")
+
+		for task in self.tasks.all():
+			logger.debug(f"Task Logic: {task.logic}")
+			on_tick: dict = task.logic.get("on_tick")
+			if on_tick is not None:
+				for tick_action in on_tick:
+					self.on_tick_process(tick_action)
 
 		for state in self.states.all():
-			logger.debug(f"Logic: {state.logic}")
+			logger.debug(f"State Logic: {state.logic}")
 			on_tick: dict = state.logic.get("on_tick")
 			if on_tick is not None:
-				self.on_tick_process(on_tick)
+				for tick_action in on_tick:
+					self.on_tick_process(tick_action)
 
-	def set_idle(self):
+	def set_idle(self) -> None:
+		"""Create Idle state logic if not created"""
 		state, present = self.check_state("Idle")
 		if state is None:
-			idle_logic = {
-				"on_tick": {
-					"conditions": [
-						{
-							"and": [
-								["==", ["self.alive", True]],
-								[">", ["self.stamina", 0]]
-							]
-						}
-					],
-					"actions": [
-						{
-							"set": {
-								"var": "self.stamina",
-								"value": ["sum", ["self.stamina", -1]]
-							}
-						}
-					]
-				}
-			}
-			state, new = State.objects.get_or_create(
-				name="Idle",
-				logic=idle_logic
-			)
-		if not present:
+			raise Exception("Idle state is mandatory and should have been loaded with fixtures")
+		else:
+			logger.debug(f"Create Idle state: {state}")
 			self.states.add(state)
+		logger.debug(f"Idle state: {state}, present: {present}")
 
-	def on_tick_process(self, on_tick):
-		main_operator = "and"
-		conditions: list = on_tick.get("conditions")
+	def on_tick_process(self, tick_action: dict) -> None:
+		"""handle logic json"""
+		conditions: list = tick_action.get("conditions")
 		logger.debug(f"Conditions: {conditions}")
-		check = self.evaluate_operator(main_operator, conditions)
+		check = self.evaluate_operator("and", conditions)
 		logger.debug(f"Check: {check}")
 		if check:
-			actions: dict = on_tick.get("actions")
+			actions: dict = tick_action.get("actions")
 			for action in actions:
+				logger.debug(f"Action: {action}")
 				for command, statement in action.items():
+					logger.debug(f"Command {command}, {statement}")
 					if command == 'set':
-						logger.debug(f"Command {command}, {statement}")
 						var = statement.get("var")
 						math = statement.get("value")
-						logger.debug(f"Eval, {math}")
-						operator, values = self.get_code(math)
-						val = self.evaluate_operator(operator, values)
+						if isinstance(math, dict) or isinstance(math, list):
+							logger.debug(f"Eval, {math}")
+							operator, values = self.get_code(math)
+							val = self.evaluate_operator(operator, values)
+						else:
+							val = math
 						logger.debug(f"Result: {val}")
 						if var.startswith("self."):
 							var = var.replace("self.", "")
 						logger.debug(f"Properties: {self.properties}")
-						self.set_property(val, var)
+						self.set_property(var, val)
+					elif command == 'addstate':
+						self.add_state(statement)
+					elif command == 'addtask':
+						self.add_task(statement)
 
-	def set_property(self, val, var):
-		self.properties[var] = val
-		self.save(update_fields=["properties"])
-
-	def get_code(self, obj) -> tuple[str, list]:
+	def get_code(self, obj: Any) -> tuple[str, list]:
+		"""Format logic object as a key-value pair, be it a one-key dict or a 2-size list"""
 		logger.debug(f"Conversion of {obj}")
 		if isinstance(obj, list) and len(obj) == 2:
-			key = obj[0]
-			values = obj[1]
+			key: str = obj[0]
+			values: list = obj[1]
 		elif isinstance(obj, dict) and len(obj.keys()) == 1:
 			key = list(obj.keys())[0]
 			values = list(obj.values())[0]
@@ -206,33 +315,13 @@ class Entity(Model):
 		logger.debug(f"Got: k = {key}, v = {values}")
 		return key, values
 
-	def check_all_conditions(self, checks):
-		check_results = []
-		for check in checks:
-			logger.debug(f"Check: {check}")
-			try:
-				conj_met = self.evaluate_condition(check)
-			except Entity.InvalidToken:
-				conj_met = True
-			check_results.append(conj_met)
-		return check_results
-
-	def evaluate_condition(self, check):
-		logger.debug(f"Eval: {check}")
-		operator, values = self.get_code(check)
-		real_values = []
-		for value in values:
-			real_values.append(self.evaluate_token(value))
-		conj_met = self.evaluate_operator(operator, real_values)
-		logger.debug(f"Eval result: {conj_met}")
-		return conj_met
-
-	def evaluate_token(self, token: str):
+	def evaluate_token(self, token: str) -> Any:
+		"""Return object's value, which may be an immediate value or anotherobject"""
 		logger.debug(f"Token: {token}")
 		if isinstance(token, str):
 			token = token.lower()
 			if token.startswith("self."):
-				var = token.replace("self.", "")
+				var: str = token.replace("self.", "")
 				if var in self.properties:
 					val = self.properties.get(var)
 				else:
@@ -252,6 +341,7 @@ class Entity(Model):
 		return val
 
 	def evaluate_operator(self, operator: str, values: list):
+		"""Calculate value"""
 		logger.debug(f"Math, oper: {operator}, values: {values}")
 
 		if operator == "==" or operator == "eq":
@@ -264,10 +354,18 @@ class Entity(Model):
 			self.validate_input_size(values, 2)
 			values = self.make_numeric(values)
 			result = values[0] > values[1]
-		elif operator == "<" or operator == "lq":
+		elif operator == ">=" or operator == "gte":
+			self.validate_input_size(values, 2)
+			values = self.make_numeric(values)
+			result = values[0] >= values[1]
+		elif operator == "<" or operator == "lt":
 			self.validate_input_size(values, 2)
 			values = self.make_numeric(values)
 			result = values[0] < values[1]
+		elif operator == "<=" or operator == "lte":
+			self.validate_input_size(values, 2)
+			values = self.make_numeric(values)
+			result = values[0] <= values[1]
 		elif operator == "and":
 			values = self.make_boolean(values)
 			result = all(values)
@@ -278,22 +376,25 @@ class Entity(Model):
 			values = self.make_numeric(values)
 			result = sum(values)
 		else:
-			raise Exception("Invalid operator")
+			raise Entity.InvalidOperator
 		logger.debug(f"Math, result: {result}")
 		return result
 
-	def validate_input_size(self, data, size):
+	def validate_input_size(self, data: list, size: int) -> None:
+		"""Check that the value size matches condition"""
 		if len(data) != size:
 			raise Exception("Invalid value size")
 
-	def make_numeric(self, data):
+	def make_numeric(self, data: list) -> list:
+		"""If any of values in a list isn't a float, attempt to translate it"""
 		if not all([isinstance(val, (int, float)) for val in data]):
 			data = [self.evaluate_token(value) for value in data]
 		if not all([isinstance(val, (int, float)) for val in data]):
 			raise Exception("Not all values are numeric")
 		return data
 
-	def make_boolean(self, data):
+	def make_boolean(self, data: list) -> list:
+		"""If any of values in a list isn't a boolean, attempt to translate it"""
 		if not all([isinstance(val, bool) for val in data]):
 			real_values = []
 			for value in data:
@@ -306,7 +407,8 @@ class Entity(Model):
 			raise Exception("Not all values are boolean")
 		return data
 
-	def validate_for_eq(self, data):
+	def validate_for_eq(self, data: list) -> list:
+		"""If any of values in a list isn't an immedaite comparable value, attempt to translate it"""
 		if not all([isinstance(val, (bool, int, float)) for val in data]):
 			data = [self.evaluate_token(value) for value in data]
 		if not all([isinstance(val, (bool, int, float)) for val in data]):

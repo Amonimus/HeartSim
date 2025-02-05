@@ -17,9 +17,19 @@
 </form>
 {% endfor %}
 
-{% for task in tasks %}
-<h3>{{ task.name }}</h3>
-<textarea>{{ task.logic }}</textarea>
+{% for form in task_forms %}
+<form method="post">
+	<h3>{{ form.instance.name }}</h3>
+	<input type="hidden" name="task_id" value="{{ form.instance.id }}">
+
+	{% for field in form %}
+		{{ field.label_tag }}<br/>
+		{{ field }}
+	{% endfor %}
+	{% csrf_token %}
+	<br/>
+	<input type="submit" value="Save">
+</form>
 {% endfor %}
 
 {% endblock %}

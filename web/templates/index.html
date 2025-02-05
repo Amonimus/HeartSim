@@ -1,31 +1,33 @@
 {% extends "base_page.html" %}
 {% block body %}
-<h1>HeartSim</h1>
+<div id="index">
+	<h1>HeartSim</h1>
 
-{% if user.is_authenticated %}
-Logged in as: {{ user.username }} (<a href="/logout">Logout</a>)
-<br/><br/>
-<hr/>
-<a href="/tutorial">Tutorial</a> - <a href="/editor">Editor</a>
-<h2>Enviroment Select</h2>
-<ul>
-	{% for world in worlds %}
-	<li>
-		{{ world.name }}
-		(<a href="/world/{{ world.id }}">Start</a>)
-		(<a href="/delete/{{ world.id }}">Drop</a>)
-	</li>
-	{% endfor %}
-	<li><a href="/new_world">Create Enviroment</a></li>
-</ul>
-{% else %}
-<a href="/login">Login</a><br/>
-<a href="/register">Register</a>
-{% endif %}
-
-<div id="footer">
+	{% if user.is_authenticated %}
+	Logged in as: {{ user.username }} (<a href="/logout">Logout</a>)
+	<br/><br/>
 	<hr/>
-	Amonimus - <a href="https://github.com/Amonimus/HeartSim">GitHub</a> - 2025
+	<a href="/tutorial">Tutorial</a> - <a href="/editor">Editor</a>
+	<br/><br/>
+	<h2>Environment Select</h2>
+	<ul>
+		{% for world in worlds %}
+		<li>
+			{{ world.name }} [{{ world.creation_time }}]
+			(<a href="/world/{{ world.id }}">Start</a>, <a href="/delete/{{ world.id }}">Drop</a>)
+		</li>
+		{% endfor %}
+		<li><a href="/new_world">Create Environment</a></li>
+	</ul>
+	{% else %}
+	<a href="/login">Login</a><br/>
+	<a href="/register">Register</a>
+	{% endif %}
+
+	<div id="footer">
+		<hr/>
+		Amonimus - <a href="https://github.com/Amonimus/HeartSim">GitHub</a> - 2025
+	</div>
 </div>
 
 {% endblock %}

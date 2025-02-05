@@ -8,28 +8,34 @@ function FetchWorldJson(){
 		var world_json = result.responseJSON;
 		console.log(world_json);
 		ParseLogs(world_json.logs);
-		$('#health').text(world_json.entities[0].properties.health);
-		$('#stamina').text(world_json.entities[0].properties.stamina);
-		//GenerateList("status_list", stats.stats.statuses);
-		//GenerateList("task_list", stats.tasks);
+		var entity = world_json.entities[0];
+		if(!entity.properties.alive){
+			PrintError("Entity is not alive!");
+		}
+		$('#health').text(entity.properties.health);
+		$('#stamina').text(entity.properties.stamina);
+		$('#alive').text(entity.properties.alive);
+		GenerateList("status_list", entity.states);
+		GenerateList("task_list", entity.tasks);
 	} else {
 		console.error(result);
 	}
 }
-//
-//function GenerateList(element_id, data){
-//		var container = document.getElementById(element_id);
-//		container.replaceChildren();
-//		const list = document.createElement("ul");
-//		container.appendChild(list);
-//
-//		for(let i=0; i<data.length; i++){
-//			const node = document.createElement("li");
-//			const textnode = document.createTextNode(data[i]);
-//			node.appendChild(textnode);
-//			list.appendChild(node);
-//		}
-//}
+
+function GenerateList(element_id, data){
+		var container = document.getElementById(element_id);
+		container.replaceChildren();
+		const list = document.createElement("ul");
+		container.appendChild(list);
+
+		for(let i=0; i<data.length; i++){
+			const node = document.createElement("li");
+			const textnode = document.createTextNode(data[i]);
+			node.appendChild(textnode);
+			list.appendChild(node);
+		}
+}
+
 function SendCommand(){
 	var text = document.getElementById("command_input").value;
 	var world_id = document.getElementById("world_id").value;
@@ -56,7 +62,7 @@ function Advance(){
 			clearInterval(interval_id);
 		});
 		if (error_flag) {
-			$('#error_status').text("Unable to fetch data!");
+			PrintError("Unable to fetch data!");
 		} else {
 			$('#error_status').text("");
 			FetchWorldJson();
@@ -67,6 +73,10 @@ function Advance(){
 		clearInterval(interval_id);
 		return;
 	}
+}
+
+function PrintError(text){
+	$('#error_status').text(text);
 }
 
 function ParseLogs(logs){
