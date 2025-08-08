@@ -8,32 +8,67 @@ function FetchWorldJson(){
 		var world_json = result.responseJSON;
 		console.log(world_json);
 		ParseLogs(world_json.logs);
-		var entity = world_json.entities[0];
-		if(!entity.properties.alive){
-			PrintError("Entity is not alive!");
+		if(world_json.disabled){
+			PrintError("World is paused!");
 		}
-		$('#health').text(entity.properties.health);
-		$('#stamina').text(entity.properties.stamina);
-		$('#alive').text(entity.properties.alive);
-		GenerateList("status_list", entity.states);
-		GenerateList("task_list", entity.tasks);
+		for (var entity_i in world_json.entities){
+			var entity = world_json.entities[entity_i];
+			PrintStats(entity);
+		}
 	} else {
 		console.error(result);
 	}
 }
 
-function GenerateList(element_id, data){
-		var container = document.getElementById(element_id);
-		container.replaceChildren();
-		const list = document.createElement("ul");
-		container.appendChild(list);
+function PrintStats(entity){
+	var world_stats = $("#world-stats");
+	var entity_row = world_stats.children("#entity-"+entity.name);
+	if(!entity_row.length){
+		entity_row = $("<li></li>");
+		entity_row.attr('id', "entity-"+entity.name);
+		entity_row.text(entity.name);
+		world_stats.append(entity_row);
+	}
+	var properties_list = entity_row.children("ul");
+	if(!properties_list.length){
+		properties_list = $("<ul></ul>");
+		entity_row.append(properties_list);
+	}
 
-		for(let i=0; i<data.length; i++){
-			const node = document.createElement("li");
-			const textnode = document.createTextNode(data[i]);
-			node.appendChild(textnode);
-			list.appendChild(node);
+	if(entity.properties.hasOwnProperty("alive")){
+		if(!entity.properties.alive){
+			PrintError("Entity is not alive!");
 		}
+		GenerateList("status_list", entity.states);
+		GenerateList("task_list", entity.tasks);
+	}
+	for (var property_name in entity.properties){
+		var property = entity.properties[property_name];
+		var property_row = properties_list.children("#property-"+entity.name+"_"+property_name);
+		if(!property_row.length){
+			property_row = $("<li></li>");
+			property_row.attr('id', "property-"+entity.name+"_"+property_name);
+			property_row.text(property_name+": ");
+			property_row.append($("<span></span>").text(entity.properties[property_name]));
+			properties_list.append(property_row);
+		} else {
+			property_row.children('span').text(entity.properties[property_name]);
+		}
+	}
+}
+
+function GenerateList(element_id, data){
+	var container = document.getElementById(element_id);
+	container.replaceChildren();
+	const list = document.createElement("ul");
+	container.appendChild(list);
+
+	for(let i=0; i<data.length; i++){
+		const node = document.createElement("li");
+		const textnode = document.createTextNode(data[i]);
+		node.appendChild(textnode);
+		list.appendChild(node);
+	}
 }
 
 function SendCommand(){
@@ -44,6 +79,7 @@ function SendCommand(){
 		text: text,
 		world_id: world_id
 	};
+	$("#world-stats").text("");
 	AjaxCall("/api/send_command", data, "POST", FetchWorldJson);
 }
 
@@ -61,22 +97,30 @@ function Advance(){
 			error_flag = true;
 			clearInterval(interval_id);
 		});
+		$('#error_status').text("");
 		if (error_flag) {
 			PrintError("Unable to fetch data!");
 		} else {
-			$('#error_status').text("");
 			FetchWorldJson();
 		}
 	} catch (err) {
 		console.error("Advance error");
 		console.error(err);
 		clearInterval(interval_id);
+		PrintError("Script error!");
 		return;
 	}
 }
 
 function PrintError(text){
-	$('#error_status').text(text);
+	var error_status = $('#error_status');
+	if (error_status.text().indexOf(text) == -1){
+		if(error_status.text().length){
+			error_status.text([error_status.text(), text].join("; "));
+		} else {
+			error_status.text(text);
+		}
+	}
 }
 
 function ParseLogs(logs){

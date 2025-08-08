@@ -3,7 +3,8 @@ from django.http.response import JsonResponse, HttpResponseForbidden, HttpRespon
 from rest_framework.request import Request
 from rest_framework.views import APIView
 
-from world.models import WorldEnvironment, SystemLog
+from app.logger import logger
+from world.models import WorldEnvironment
 
 
 class UsersApiView(APIView):
@@ -46,6 +47,7 @@ class SendCommandApiView(APIView):
 			if world.creator != request.user:
 				return HttpResponseForbidden('unauthorized', status=403)
 			text: str = data.get("text")
+			logger.debug(f"{request.user}, msg: {text}")
 			world.listen(request.user, text)
 			return JsonResponse({"ok": True})
 		except Exception as e:

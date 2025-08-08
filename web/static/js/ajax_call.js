@@ -4,6 +4,7 @@ function AjaxCall(url, data=null, method='GET', on_success=null, on_error=null){
 		method: method,
 		async: false,
 		data: data,
+		contentType: 'application/x-www-form-urlencoded',
 		success: (data) => {
 			//console.log(data);
 			if (on_success){

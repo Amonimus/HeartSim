@@ -8,3 +8,4 @@ function include(file) {
 }
 include("ajax_call");
 include("get_time");
+include("reload");

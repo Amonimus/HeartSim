@@ -1,0 +1,2 @@
+- [ ] make a cURL friendly interface
+- [ ] Add /say, /rename and /edit commands

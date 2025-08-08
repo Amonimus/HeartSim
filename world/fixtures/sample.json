@@ -3,6 +3,126 @@
 	"model": "world.state",
 	"pk": 1,
 	"fields": {
+	  "name": "Any",
+	  "logic": {
+		"on_tick": [
+		  {
+			"conditions": [
+			  {
+				">": [
+				  "self.health",
+				  100
+				]
+			  }
+			],
+			"actions": [
+			  {
+				"set": {
+				  "var": "self.health",
+				  "value": 100
+				}
+			  }
+			]
+		  },
+		  {
+			"conditions": [
+			  {
+				">": [
+				  "self.stamina",
+				  100
+				]
+			  }
+			],
+			"actions": [
+			  {
+				"set": {
+				  "var": "self.stamina",
+				  "value": 100
+				}
+			  }
+			]
+		  },
+		  {
+			"conditions": [
+			  {
+				"<": [
+				  "self.stamina",
+				  0
+				]
+			  }
+			],
+			"actions": [
+			  {
+				"set": {
+				  "var": "self.stamina",
+				  "value": 0
+				}
+			  }
+			]
+		  },
+		  {
+			"conditions": [
+			  {
+				"and": [
+				  {
+					"<=": [
+					  "self.health",
+					  0
+					]
+				  }
+				]
+			  }
+			],
+			"actions": [
+			  {
+				"set": {
+				  "var": "self.alive",
+				  "value": false
+				}
+			  }
+			]
+		  },
+		  {
+			"conditions": [
+			  {
+				"and": [
+				  {
+					"<": [
+					  "self.health",
+					  100
+					]
+				  },
+				  {
+					">=": [
+					  "self.stamina",
+					  50
+					]
+				  }
+				]
+			  }
+			],
+			"actions": [
+			  {
+				"set": {
+				  "var": "self.health",
+				  "value": {
+					"sum": [
+					  "self.health",
+					  2
+					]
+				  }
+				}
+			  }
+			]
+		  }
+		]
+	  }
+	}
+  },
+  {
+	"model": "world.state",
+	"pk": 2,
+	"fields": {
 	  "name": "Idle",
 	  "logic": {
 		"on_tick": [
@@ -10,12 +130,6 @@
 			"conditions": [
 			  {
 				"and": [
-				  {
-					"==": [
-					  "self.alive",
-					  true
-					]
-				  },
 				  {
 					">": [
 					  "self.stamina",
@@ -44,17 +158,35 @@
 			  {
 				"and": [
 				  {
-					"==": [
-					  "self.alive",
-					  true
-					]
-				  },
-				  {
-					">": [
-					  "self.health",
+					"<=": [
+					  "self.stamina",
 					  0
 					]
-				  },
+				  }
+				]
+			  }
+			],
+			"actions": [
+			  {
+				"state_add": "Tired"
+			  }
+			]
+		  }
+		]
+	  }
+	}
+  },
+  {
+	"model": "world.state",
+	"pk": 3,
+	"fields": {
+	  "name": "Tired",
+	  "logic": {
+		"on_tick": [
+		  {
+			"conditions": [
+			  {
+				"and": [
 				  {
 					"<=": [
 					  "self.stamina",
@@ -75,9 +207,6 @@
 					]
 				  }
 				}
-			  },
-			  {
-				"addstate": "Tired"
 			  }
 			]
 		  },
@@ -86,15 +215,39 @@
 			  {
 				"and": [
 				  {
-					"==": [
-					  "self.alive",
-					  true
+					">": [
+					  "self.stamina",
+					  50
 					]
-				  },
+				  }
+				]
+			  }
+			],
+			"actions": [
+			  {
+				"state_remove": "Tired"
+			  }
+			]
+		  }
+		]
+	  }
+	}
+  },
+  {
+	"model": "world.state",
+	"pk": 4,
+	"fields": {
+	  "name": "Sleeping",
+	  "logic": {
+		"on_tick": [
+		  {
+			"conditions": [
+			  {
+				"and": [
 				  {
-					"<=": [
-					  "self.health",
-					  0
+					"<": [
+					  "self.stamina",
+					  100
 					]
 				  }
 				]
@@ -103,8 +256,13 @@
 			"actions": [
 			  {
 				"set": {
-				  "var": "self.alive",
-				  "value": false
+				  "var": "self.stamina",
+				  "value": {
+					"sum": [
+					  "self.stamina",
+					  10
+					]
+				  }
 				}
 			  }
 			]
@@ -121,17 +279,40 @@
 	  "logic": {
 		"on_tick": [
 		  {
+			"conditions": [
+			  {
+				"not": {
+				  "state_has": "Sleeping"
+				}
+			  }
+			],
 			"actions": [
 			  {
-				"set": {
-				  "var": "self.stamina",
-				  "value": {
-					"sum": [
-					  "self.stamina",
-					  10
-					]
-				  }
-				}
+				"state_add": "Sleeping"
+			  }
+			]
+		  },
+		  {
+			"conditions": [
+			  {
+				">=": [
+				  "self.stamina",
+				  100
+				]
+			  }
+			],
+			"actions": [
+			  {
+				"task_complete": "Sleep"
+			  }
+			]
+		  }
+		],
+		"on_complete": [
+		  {
+			"actions": [
+			  {
+				"state_remove": "Sleeping"
 			  }
 			]
 		  }

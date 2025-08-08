@@ -14,6 +14,7 @@ INSTALLED_APPS: list[str] = [
 	'django.contrib.messages',
 	'django.contrib.staticfiles',
 	'rest_framework',
+	'django_extensions',
 	'api',
 	'world'
 ]
@@ -81,6 +82,9 @@ TEMPLATES: list[dict] = [
 				'django.contrib.auth.context_processors.auth',
 				'django.contrib.messages.context_processors.messages',
 			],
+			'builtins': [
+				'django.templatetags.static'
+			]
 		},
 	},
 ]
@@ -91,7 +95,7 @@ REST_FRAMEWORK = {
 		'rest_framework.authentication.BasicAuthentication',
 		'rest_framework.authentication.SessionAuthentication',
 	],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
+	'DEFAULT_PERMISSION_CLASSES': [
+		'rest_framework.permissions.IsAuthenticated',
+	],
 }

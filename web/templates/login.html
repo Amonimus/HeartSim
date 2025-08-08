@@ -7,6 +7,9 @@
 	{% if user.is_authenticated %}
 	You are already logged in.
 	{% else %}
+	{% for error in form.errors.values %}
+		{{ error | striptags }}
+	{% endfor %}
 	<form method="post" id="login-form">
 		{% csrf_token %}
 		<div class="input-group">

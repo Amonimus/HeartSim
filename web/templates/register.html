@@ -10,17 +10,17 @@
 	<form method="post">
 		{% csrf_token %}
 		<div class="input-group">
-			<input type="text" name="username" autocomplete="on" placeholder="Username" required>
+			<input type="text" name="username" placeholder="Username" required>
 		</div>
 		<div class="input-group">
-			<input type="text" name="email" autocomplete="on" placeholder="Email" required>
+			<input type="text" name="email" placeholder="Email" required>
 		</div>
 		<div class="input-group">
-			<input type="password" name="password" autocomplete="on" placeholder="Password" required>
+			<input type="password" name="password" placeholder="Password" required>
 			<span class="toggle-password">👁</span>
 		</div>
 		<div class="input-group">
-			<input type="password" name="confirm_password" autocomplete="on" placeholder="Confirm Password" required>
+			<input type="password" name="confirm_password" placeholder="Confirm Password" required>
 			<span class="toggle-password">👁</span>
 		</div>
 		<p><input type="submit" value="Register"></p>

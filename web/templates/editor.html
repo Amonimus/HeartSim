@@ -1,35 +1,67 @@
 {% extends "base_page.html" %}
+{% load logic_form %}
 {% block body %}
+<div class="expand-page"></div>
 <h1>Editor</h1>
 
-{% for form in state_forms %}
-<form method="post">
-	<h3>{{ form.instance.name }}</h3>
-	<input type="hidden" name="state_id" value="{{ form.instance.id }}">
+<h2>States</h2>
 
-	{% for field in form %}
-		{{ field.label_tag }}<br/>
-		{{ field }}
+<table>
+	{% for form in state_forms %}
+	<tr>
+		<td>
+			<form method="post">
+				<span>{{ form.instance.name }}</span>
+				<input type="hidden" name="state_id" value="{{ form.instance.id }}">
+				{% for error in form.errors.values %}
+				{{ error | striptags }}
+				{% endfor %}
+				{% for field in form %}
+				{{ field.label_tag }}<br/>
+				{{ field }}
+				{% endfor %}
+				{% csrf_token %}
+				<br/>
+				<input type="submit" value="Save">
+			</form>
+		</td>
+		<td>
+			<input type="hidden" name="state_id" value="{{ form.instance.id }}">
+			{{ form.instance.logic|logic_form|safe }}
+		</td>
+	</tr>
 	{% endfor %}
-	{% csrf_token %}
-	<br/>
-	<input type="submit" value="Save">
-</form>
-{% endfor %}
+</table>
 
-{% for form in task_forms %}
-<form method="post">
-	<h3>{{ form.instance.name }}</h3>
-	<input type="hidden" name="task_id" value="{{ form.instance.id }}">
+<h2>Tasks</h2>
 
-	{% for field in form %}
-		{{ field.label_tag }}<br/>
-		{{ field }}
+<table>
+	{% for form in task_forms %}
+	<tr>
+		<td>
+			<form method="post">
+				<span>{{ form.instance.name }}</span>
+				<input type="hidden" name="task_id" value="{{ form.instance.id }}">
+				{% for error in form.errors.values %}
+				{{ error | striptags }}
+				{% endfor %}
+				{% for field in form %}
+				{{ field.label_tag }}<br/>
+				{{ field }}
+				{% endfor %}
+				{% csrf_token %}
+				<br/>
+				<input type="submit" value="Save">
+			</form>
+		</td>
+		<td>
+			<input type="hidden" name="task_id" value="{{ form.instance.id }}">
+			{{ form.instance.logic|logic_form|safe }}
+		</td>
+	</tr>
 	{% endfor %}
-	{% csrf_token %}
-	<br/>
-	<input type="submit" value="Save">
-</form>
-{% endfor %}
+</table>
+
+<script src="{% static 'js/editor.js' %}"></script>
 
 {% endblock %}

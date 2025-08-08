@@ -4,6 +4,7 @@ from django.http.request import HttpRequest
 from django.shortcuts import HttpResponse, redirect, render, reverse
 from django.views import View
 
+from app.logger import logger
 from world.forms import CustomAuthenticationForm
 
 
@@ -23,7 +24,7 @@ class LoginView(View):
 				login(request, user)
 				return redirect(reverse('index'))
 		else:
-			print(f'FORM {form.errors} {form.non_field_errors()}')
+			logger.error(f'FORM {form.errors} {form.non_field_errors()}')
 		return render(request, self.template_name, {'form': form})
 
 
